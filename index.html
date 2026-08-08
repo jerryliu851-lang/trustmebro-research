@@ -1,0 +1,1446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex,nofollow" />
+<title>Trust Me Bro — evidence reader</title>
+<meta name="description" content="Trust Me Bro — a calm evidence reader that answers health questions from real peer-reviewed research, with working links and honest evidence grading." />
+<meta property="og:title" content="Trust Me Bro" />
+<meta property="og:description" content="Health questions, answered from real peer-reviewed research — with working links and honest evidence grading." />
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#101216" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Trust Me Bro" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){});});}</script>
+<style>
+/* ============================================================
+   TRUST ME BRO — a calm, editorial evidence reader
+   Single-file. System typography. Dark-default, light toggle.
+   ============================================================ */
+
+/* ---- Tokens: dark (default) ---- */
+:root,
+:root[data-theme="dark"] {
+  --bg:            #101216;
+  --bg-2:          #14171d;   /* subtle raised ground */
+  --surface:       #181b22;   /* cards */
+  --surface-2:     #1e222b;   /* elevated / inputs */
+  --hairline:      rgba(255,255,255,0.09);
+  --hairline-2:    rgba(255,255,255,0.055);
+
+  --ink:           #ece7dd;   /* warm off-white, primary text */
+  --ink-2:         #a7a39a;   /* secondary */
+  --ink-3:         #6f6c64;   /* muted / metadata */
+
+  --accent:        #5fc0a6;   /* muted teal — interactive + Strong */
+  --accent-ink:    #0c1512;   /* text on accent */
+  --accent-soft:   rgba(95,192,166,0.14);
+  --accent-line:   rgba(95,192,166,0.38);
+
+  /* evidence ramp */
+  --ev-strong:     #5fc0a6;
+  --ev-moderate:   #79ad9c;
+  --ev-emerging:   #cda869;
+  --ev-weak:       #bd9084;
+  --ev-track:      rgba(255,255,255,0.14);
+
+  --shadow:        0 1px 2px rgba(0,0,0,0.4), 0 8px 30px rgba(0,0,0,0.28);
+  --radius:        16px;
+  --radius-sm:     11px;
+
+  --chrome:        rgba(16,18,22,0.72);
+
+  color-scheme: dark;
+}
+
+/* ---- Tokens: light ---- */
+:root[data-theme="light"] {
+  --bg:            #f5f2ea;
+  --bg-2:          #efece2;
+  --surface:       #fffdf7;
+  --surface-2:     #faf7ef;
+  --hairline:      rgba(38,34,28,0.13);
+  --hairline-2:    rgba(38,34,28,0.08);
+
+  --ink:           #23201a;
+  --ink-2:         #5d584e;
+  --ink-3:         #8a857a;
+
+  --accent:        #2f8f78;
+  --accent-ink:    #ffffff;
+  --accent-soft:   rgba(47,143,120,0.12);
+  --accent-line:   rgba(47,143,120,0.40);
+
+  --ev-strong:     #2f8f78;
+  --ev-moderate:   #4f8a76;
+  --ev-emerging:   #a9843a;
+  --ev-weak:       #a5675a;
+  --ev-track:      rgba(38,34,28,0.14);
+
+  --shadow:        0 1px 2px rgba(60,50,35,0.06), 0 10px 30px rgba(60,50,35,0.08);
+  --chrome:        rgba(245,242,234,0.72);
+
+  color-scheme: light;
+}
+
+/* honor OS light on first visit if no explicit choice is stored (JS sets data-theme; this is a graceful pre-JS fallback) */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --bg:#f5f2ea; --bg-2:#efece2; --surface:#fffdf7; --surface-2:#faf7ef;
+    --hairline:rgba(38,34,28,0.13); --hairline-2:rgba(38,34,28,0.08);
+    --ink:#23201a; --ink-2:#5d584e; --ink-3:#8a857a;
+    --accent:#2f8f78; --accent-ink:#fff; --accent-soft:rgba(47,143,120,0.12); --accent-line:rgba(47,143,120,0.40);
+    --ev-strong:#2f8f78; --ev-moderate:#4f8a76; --ev-emerging:#a9843a; --ev-weak:#a5675a; --ev-track:rgba(38,34,28,0.14);
+    --chrome:rgba(245,242,234,0.72); color-scheme:light;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100dvh;
+}
+
+:root {
+  --font-serif: ui-serif, "New York", "Iowan Old Style", "Charter", Georgia, "Times New Roman", serif;
+  --font-sans:  ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+}
+
+/* selection + focus */
+::selection { background: var(--accent-soft); }
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---- App frame ---- */
+.app {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 0 20px calc(112px + env(safe-area-inset-bottom)) 20px;
+}
+
+/* ---- Header ---- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px calc(14px);
+  max-width: 660px;
+  margin: 0 auto;
+  background: var(--chrome);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--hairline-2);
+}
+.brand { display: flex; align-items: baseline; gap: 9px; min-width: 0; }
+.brand__mark {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.brand__mark .dot { color: var(--accent); }
+.brand__tag {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 460px){ .brand__tag { display: none; } }
+
+.iconbtn {
+  appearance: none;
+  border: 1px solid var(--hairline);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  width: 44px; height: 44px;
+  border-radius: 11px;
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: transform .16s var(--ease), background .2s, color .2s, border-color .2s;
+  flex: none;
+}
+.iconbtn:hover { color: var(--ink); }
+.iconbtn:active { transform: scale(0.94); }
+.iconbtn svg { width: 19px; height: 19px; display: block; }
+
+:root { --ease: cubic-bezier(0.23,1,0.32,1); --ease-io: cubic-bezier(0.65,0,0.35,1); }
+
+/* ---- Views ---- */
+main { padding-top: 12px; }
+.view { display: none; }
+.view.is-active { display: block; animation: viewIn .34s var(--ease) both; }
+@keyframes viewIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ---- Search view ---- */
+.hero { padding: 26px 2px 20px; }
+.hero__eyebrow {
+  font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--accent); font-weight: 600; margin: 0 0 12px;
+}
+.hero__title {
+  font-family: var(--font-serif);
+  font-size: clamp(28px, 8vw, 38px);
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  margin: 0 0 12px;
+  text-wrap: balance;
+}
+.hero__sub { color: var(--ink-2); font-size: 16px; margin: 0; max-width: 46ch; }
+
+.searchbox {
+  margin-top: 22px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 8px;
+  box-shadow: var(--shadow);
+  transition: border-color .2s;
+}
+.searchbox:focus-within { border-color: var(--accent-line); }
+.searchbox textarea {
+  width: 100%;
+  border: 0; background: transparent; color: var(--ink);
+  font-family: var(--font-sans); font-size: 17px; line-height: 1.5;
+  padding: 12px 12px 6px; resize: none; outline: none;
+  min-height: 52px;
+}
+.searchbox textarea::placeholder { color: var(--ink-3); }
+.searchbox__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 6px 6px; }
+.searchbox__hint { font-size: 12.5px; color: var(--ink-3); }
+
+.btn {
+  appearance: none; border: 0; cursor: pointer;
+  font-family: var(--font-sans); font-weight: 600; font-size: 15px;
+  background: var(--accent); color: var(--accent-ink);
+  padding: 11px 18px; border-radius: 11px;
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: transform .16s var(--ease), filter .2s, opacity .2s;
+}
+.btn:hover { filter: brightness(1.05); }
+.btn:active { transform: scale(0.97); }
+.btn[disabled] { opacity: .5; cursor: default; }
+.btn svg { width: 17px; height: 17px; }
+
+.btn-ghost {
+  background: transparent; color: var(--ink-2);
+  border: 1px solid var(--hairline);
+  padding: 10px 16px; border-radius: 11px; font-weight: 600; font-size: 14px;
+  cursor: pointer; transition: transform .16s var(--ease), color .2s, border-color .2s;
+}
+.btn-ghost:hover { color: var(--ink); }
+.btn-ghost:active { transform: scale(0.97); }
+
+.examples { margin-top: 26px; }
+.examples__label { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 12px; font-weight: 600; }
+.chips { display: flex; flex-direction: column; gap: 9px; }
+.chip {
+  text-align: left; width: 100%;
+  background: var(--surface); border: 1px solid var(--hairline);
+  color: var(--ink-2); border-radius: var(--radius-sm);
+  padding: 13px 15px; font-size: 15.5px; font-family: var(--font-sans);
+  cursor: pointer; display: flex; align-items: center; gap: 11px;
+  transition: transform .16s var(--ease), border-color .2s, color .2s, background .2s;
+}
+.chip:hover { color: var(--ink); border-color: var(--accent-line); }
+.chip:active { transform: scale(0.99); }
+.chip svg { width: 16px; height: 16px; color: var(--ink-3); flex: none; }
+
+/* ---- Disclaimer ---- */
+.disclaimer {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin-top: 30px; padding: 13px 15px;
+  border: 1px dashed var(--hairline); border-radius: var(--radius-sm);
+  color: var(--ink-3); font-size: 12.5px; line-height: 1.5;
+}
+.disclaimer svg { width: 15px; height: 15px; flex: none; margin-top: 2px; color: var(--ink-3); }
+
+/* ---- Result view ---- */
+.resulthead { display: flex; align-items: center; gap: 10px; padding: 4px 0 14px; }
+.resulthead__q { flex: 1; font-size: 14px; color: var(--ink-2); min-width: 0; }
+.backbtn {
+  appearance: none; background: transparent; border: 1px solid var(--hairline);
+  color: var(--ink-2); border-radius: 10px; height: 44px; padding: 0 12px;
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; font-weight: 600;
+  transition: transform .16s var(--ease), color .2s, border-color .2s; flex: none;
+}
+.backbtn:hover { color: var(--ink); }
+.backbtn:active { transform: scale(0.96); }
+.backbtn svg { width: 15px; height: 15px; }
+
+.stack { display: flex; flex-direction: column; gap: 16px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: var(--shadow);
+}
+.card--hero { padding: 26px 24px; }
+.card__label {
+  font-size: 11.5px; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 700; margin: 0 0 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card__label .k { color: var(--accent); }
+
+.bottomline {
+  font-family: var(--font-serif);
+  font-size: clamp(20px, 5.2vw, 24px);
+  line-height: 1.42;
+  letter-spacing: -0.011em;
+  margin: 0; color: var(--ink);
+  text-wrap: pretty;
+}
+
+/* evidence quality */
+.evq { display: flex; flex-direction: column; gap: 12px; }
+.evq__top { display: flex; align-items: center; gap: 13px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 7px 13px 7px 11px; border-radius: 999px;
+  border: 1px solid var(--badge-line, var(--hairline));
+  background: var(--badge-soft, var(--surface-2));
+  font-size: 14px; font-weight: 700; letter-spacing: .01em;
+  color: var(--badge, var(--ink));
+}
+.badge__dots { display: inline-flex; gap: 3px; }
+.badge__dots i {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--ev-track); display: block;
+}
+.badge__dots i.on { background: var(--badge, var(--accent)); }
+.badge--strong   { --badge: var(--ev-strong);   --badge-soft: color-mix(in srgb, var(--ev-strong) 15%, transparent);   --badge-line: color-mix(in srgb, var(--ev-strong) 40%, transparent); }
+.badge--moderate { --badge: var(--ev-moderate); --badge-soft: color-mix(in srgb, var(--ev-moderate) 15%, transparent); --badge-line: color-mix(in srgb, var(--ev-moderate) 40%, transparent); }
+.badge--emerging { --badge: var(--ev-emerging); --badge-soft: color-mix(in srgb, var(--ev-emerging) 16%, transparent); --badge-line: color-mix(in srgb, var(--ev-emerging) 42%, transparent); }
+.badge--weak     { --badge: var(--ev-weak);     --badge-soft: color-mix(in srgb, var(--ev-weak) 16%, transparent);     --badge-line: color-mix(in srgb, var(--ev-weak) 42%, transparent); }
+.evq__why { color: var(--ink-2); font-size: 15px; margin: 0; }
+
+/* studies */
+.studies { display: flex; flex-direction: column; gap: 13px; }
+.study {
+  border: 1px solid var(--hairline); border-radius: var(--radius-sm);
+  padding: 16px 17px; background: var(--bg-2);
+}
+.study__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 9px; margin: 0 0 9px; }
+.tag {
+  font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 6px;
+  background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-line);
+}
+.study__metatext { font-size: 12.5px; color: var(--ink-3); }
+.study__title {
+  font-family: var(--font-serif); font-size: 17.5px; line-height: 1.34;
+  font-weight: 600; margin: 0 0 8px; color: var(--ink); letter-spacing: -0.006em;
+}
+.study__finding { color: var(--ink-2); font-size: 14.5px; margin: 0 0 12px; line-height: 1.55; }
+.study__link {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--accent); text-decoration: none; font-size: 13.5px; font-weight: 600;
+  border-bottom: 1px solid transparent; transition: border-color .2s;
+}
+.study__link:hover { border-bottom-color: var(--accent-line); }
+.study__link svg { width: 13px; height: 13px; }
+.study__link.nolink { color: var(--ink-3); pointer-events: none; }
+
+.prose { color: var(--ink); font-size: 16px; line-height: 1.6; margin: 0; }
+.prose.dim { color: var(--ink-2); font-size: 15px; }
+
+.sources { color: var(--ink-3); font-size: 13px; line-height: 1.55; margin: 0; }
+
+/* ---- Library ---- */
+.libhead { padding: 22px 2px 16px; }
+.libhead h2 { font-family: var(--font-serif); font-size: 28px; letter-spacing: -0.02em; margin: 0 0 4px; font-weight: 600; }
+.libhead p { color: var(--ink-3); margin: 0; font-size: 14px; }
+
+.filter {
+  display: flex; align-items: center; gap: 9px;
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: 12px; padding: 0 13px; margin-bottom: 16px;
+  transition: border-color .2s;
+}
+.filter:focus-within { border-color: var(--accent-line); }
+.filter svg { width: 16px; height: 16px; color: var(--ink-3); flex: none; }
+.filter input {
+  border: 0; background: transparent; color: var(--ink); outline: none;
+  font-family: var(--font-sans); font-size: 16px; padding: 12px 0; width: 100%;
+}
+.filter input::placeholder { color: var(--ink-3); }
+
+.samples-note {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  font-size: 12.5px; color: var(--ink-3);
+  padding: 10px 13px; margin-bottom: 14px;
+  border: 1px dashed var(--hairline); border-radius: 11px;
+}
+.samples-note button { margin-left: auto; }
+.link-btn { background: none; border: 0; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; padding: 0 2px; min-height: 44px; display: inline-flex; align-items: center; }
+
+.libcard {
+  width: 100%; text-align: left; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: var(--radius); padding: 17px 18px;
+  display: flex; align-items: flex-start; gap: 14px;
+  transition: transform .16s var(--ease), border-color .2s, background .2s;
+  font-family: var(--font-sans);
+}
+.libcard:hover { border-color: var(--accent-line); }
+.libcard:active { transform: scale(0.992); }
+.libcard__body { flex: 1; min-width: 0; }
+.libcard__q {
+  font-family: var(--font-serif); font-size: 17px; line-height: 1.34; font-weight: 600;
+  color: var(--ink); margin: 0 0 9px; letter-spacing: -0.006em;
+}
+.libcard__meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.libcard__date { font-size: 12.5px; color: var(--ink-3); }
+.sample-tag {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink-3); border: 1px solid var(--hairline); border-radius: 5px; padding: 2px 6px;
+}
+.libcard__del {
+  appearance: none; border: 0; background: transparent; color: var(--ink-3);
+  width: 44px; height: 44px; border-radius: 8px; cursor: pointer; flex: none;
+  display: grid; place-items: center; transition: color .2s, background .2s, transform .16s var(--ease);
+}
+.libcard__del:hover { color: var(--ev-weak); background: var(--surface-2); }
+.libcard__del:active { transform: scale(0.9); }
+.libcard__del svg { width: 16px; height: 16px; }
+
+/* mini badge for library */
+.minibadge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--badge, var(--ink-2)); }
+.minibadge .dots { display: inline-flex; gap: 2.5px; }
+.minibadge .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--ev-track); }
+.minibadge .dots i.on { background: var(--badge, var(--accent)); }
+.minibadge--strong { --badge: var(--ev-strong); }
+.minibadge--moderate { --badge: var(--ev-moderate); }
+.minibadge--emerging { --badge: var(--ev-emerging); }
+.minibadge--weak { --badge: var(--ev-weak); }
+
+/* empty state */
+.empty { text-align: center; padding: 54px 20px; }
+.empty__icon {
+  width: 56px; height: 56px; margin: 0 auto 18px; border-radius: 16px;
+  display: grid; place-items: center; background: var(--surface); border: 1px solid var(--hairline); color: var(--ink-3);
+}
+.empty__icon svg { width: 26px; height: 26px; }
+.empty h3 { font-family: var(--font-serif); font-size: 21px; margin: 0 0 8px; font-weight: 600; }
+.empty p { color: var(--ink-3); margin: 0 auto 20px; max-width: 32ch; font-size: 15px; }
+
+/* stagger animation */
+.reveal { opacity: 0; transform: translateY(10px); }
+.reveal.in { animation: rise .5s var(--ease) forwards; animation-delay: calc(var(--i, 0) * 42ms); }
+@keyframes rise { to { opacity: 1; transform: none; } }
+
+/* ---- Bottom nav ---- */
+.nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: flex; justify-content: center;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--bg) 40%, transparent);
+  pointer-events: none;
+}
+.nav__inner {
+  pointer-events: auto;
+  display: flex; gap: 4px; padding: 6px;
+  background: var(--chrome);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid var(--hairline); border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+.navbtn {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  color: var(--ink-3); font-family: var(--font-sans); font-weight: 600; font-size: 13px;
+  padding: 9px 20px; border-radius: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: color .2s, background .2s, transform .16s var(--ease);
+  min-width: 92px;
+}
+.navbtn svg { width: 20px; height: 20px; }
+.navbtn.is-active { color: var(--accent); background: var(--accent-soft); }
+.navbtn:active { transform: scale(0.95); }
+
+/* ---- Loading overlay ---- */
+.loading {
+  position: fixed; inset: 0; z-index: 60;
+  display: none; place-items: center;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  padding: 24px;
+}
+.loading.is-active { display: grid; animation: fadeIn .3s ease both; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.loading__box { text-align: center; max-width: 340px; width: 100%; }
+.loading__glyph {
+  width: 46px; height: 46px; margin: 0 auto 22px; color: var(--accent);
+  animation: breathe 2.6s var(--ease-io) infinite;
+}
+@keyframes breathe { 0%,100% { opacity: .55; transform: scale(0.94); } 50% { opacity: 1; transform: scale(1); } }
+.loading__glyph svg { width: 100%; height: 100%; }
+.loading__phase {
+  font-family: var(--font-serif); font-size: 19px; color: var(--ink);
+  margin: 0 0 18px; min-height: 26px; letter-spacing: -0.01em;
+}
+.loading__phase span { display: inline-block; animation: phaseIn .5s var(--ease) both; }
+@keyframes phaseIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.progress { height: 3px; border-radius: 3px; background: var(--ev-track); overflow: hidden; }
+.progress__bar { height: 100%; width: 0%; background: var(--accent); border-radius: 3px; transition: width .8s var(--ease-io); }
+.loading__note { margin: 16px 0 0; font-size: 12.5px; color: var(--ink-3); }
+
+/* ---- Settings sheet ---- */
+.scrim {
+  position: fixed; inset: 0; z-index: 70; display: none;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+}
+.scrim.is-active { display: block; animation: fadeIn .25s ease both; }
+.sheet {
+  position: fixed; z-index: 71; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: min(560px, 100%);
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: 20px 20px 0 0; padding: 10px 22px calc(26px + env(safe-area-inset-bottom));
+  display: none; box-shadow: 0 -10px 40px rgba(0,0,0,0.35);
+}
+.sheet.is-active { display: block; animation: sheetUp .42s var(--ease) both; }
+@keyframes sheetUp { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
+.sheet__grip { width: 40px; height: 4px; border-radius: 2px; background: var(--hairline); margin: 8px auto 18px; }
+.sheet h3 { font-family: var(--font-serif); font-size: 21px; margin: 0 0 6px; font-weight: 600; }
+.sheet p { color: var(--ink-3); font-size: 13.5px; margin: 0 0 18px; line-height: 1.5; }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); font-weight: 700; margin-bottom: 8px; }
+.field input, .field select {
+  width: 100%; background: var(--surface-2); border: 1px solid var(--hairline);
+  border-radius: 11px; padding: 12px 14px; color: var(--ink);
+  font-family: var(--font-sans); font-size: 16px; outline: none; transition: border-color .2s;
+}
+.field input:focus, .field select:focus { border-color: var(--accent-line); }
+.sheet__row { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
+.sheet__row .btn { flex: 1; justify-content: center; }
+.keystate { font-size: 12.5px; color: var(--ink-3); margin: 10px 0 0; display: flex; align-items: center; gap: 7px; }
+.keystate .ok { color: var(--accent); }
+
+.toast {
+  position: fixed; z-index: 80; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom));
+  transform: translateX(-50%) translateY(12px); opacity: 0;
+  background: var(--surface-2); color: var(--ink); border: 1px solid var(--hairline);
+  padding: 11px 16px; border-radius: 12px; font-size: 14px; box-shadow: var(--shadow);
+  transition: opacity .25s, transform .25s var(--ease); pointer-events: none; max-width: 88%;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.err { border-color: color-mix(in srgb, var(--ev-weak) 50%, var(--hairline)); }
+
+/* streaming status */
+.streamstatus {
+  display: flex; align-items: center; gap: 11px;
+  padding: 15px 18px; margin-bottom: 4px;
+  border: 1px solid var(--hairline); border-radius: var(--radius);
+  background: var(--surface); color: var(--ink-2); font-size: 14.5px;
+}
+.streamstatus .spin {
+  width: 16px; height: 16px; border-radius: 50%; flex: none;
+  border: 2px solid var(--ev-track); border-top-color: var(--accent);
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.streamstatus__label { font-weight: 600; color: var(--ink); }
+.streamstatus__detail { color: var(--ink-3); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.streamstatus__cancel {
+  appearance: none; border: 0; background: transparent; color: var(--ink-3);
+  font-family: var(--font-sans); font-weight: 600; font-size: 13px; cursor: pointer;
+  margin-left: auto; padding: 10px 6px; flex: none;
+  transition: color .2s;
+}
+.streamstatus__cancel:hover { color: var(--ink); }
+.streamstatus__cancel:active { opacity: .7; }
+.streamstatus.is-error { flex-direction: column; align-items: flex-start; gap: 12px; }
+.streamstatus.is-error .streamstatus__label { display: flex; align-items: center; gap: 8px; }
+
+/* Quick / Deep toggle */
+.modeToggle { display: inline-flex; align-items: center; gap: 3px; padding: 3px; background: var(--surface-2); border: 1px solid var(--hairline); border-radius: 10px; }
+.modeToggle button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font-family: var(--font-sans); font-weight: 600; font-size: 12.5px; color: var(--ink-3);
+  padding: 6px 12px; border-radius: 8px; transition: color .18s, background .18s, transform .16s var(--ease);
+  min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
+}
+.modeToggle button.on { color: var(--accent); background: var(--accent-soft); }
+.modeToggle button:active { transform: scale(0.95); }
+.modeToggle .hint { color: var(--ink-3); font-size: 11px; padding: 0 6px 0 4px; }
+@media (max-width: 420px){ .modeToggle .hint { display: none; } }
+
+/* saved-answer banner */
+.savedbanner {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 12px 16px; margin-bottom: 4px;
+  border: 1px solid var(--accent-line); border-radius: var(--radius);
+  background: var(--accent-soft); color: var(--ink-2); font-size: 13.5px;
+}
+.savedbanner .btn-ghost { margin-left: auto; padding: 7px 13px; font-size: 13px; }
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .12s !important; }
+  .view.is-active, .reveal.in { animation: fadeIn .18s ease both; transform: none !important; }
+  .loading__glyph, .streamstatus .spin { animation: none; opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand__mark">Trust Me Bro<span class="dot">.</span></span>
+    <span class="brand__tag">the literature, closely read</span>
+  </div>
+  <button class="iconbtn" id="settingsBtn" aria-label="Settings" title="Settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</header>
+
+<div class="app">
+  <main>
+    <!-- SEARCH -->
+    <section class="view is-active" id="view-search">
+      <div class="hero">
+        <p class="hero__eyebrow">Evidence, on demand</p>
+        <h1 class="hero__title">Ask a health question. Get the real research.</h1>
+        <p class="hero__sub">Grounded in peer-reviewed literature — PubMed, Europe&nbsp;PMC, ClinicalTrials.gov — with the study designs, effect sizes, and working links behind the answer.</p>
+      </div>
+
+      <form class="searchbox" id="searchForm">
+        <textarea id="q" rows="1" placeholder="e.g. What does long-term creatine supplementation do?" autocomplete="off"></textarea>
+        <div class="searchbox__row">
+          <div class="modeToggle" id="modeToggle" role="group" aria-label="Search depth">
+            <button type="button" data-mode="quick" class="on">Quick</button>
+            <button type="button" data-mode="deep">Deep</button>
+            <span class="hint">fast / thorough</span>
+          </div>
+          <button class="btn" type="submit" id="searchBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            Research
+          </button>
+        </div>
+      </form>
+
+      <div class="examples">
+        <p class="examples__label">Try one</p>
+        <div class="chips" id="chips"></div>
+      </div>
+
+      <div class="disclaimer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        <span>Trust Me Bro summarizes published research; it is <strong>not medical advice</strong>. Talk to a qualified clinician about decisions for your own health.</span>
+      </div>
+    </section>
+
+    <!-- RESULT -->
+    <section class="view" id="view-result">
+      <div class="resulthead">
+        <button class="backbtn" id="backBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          Back
+        </button>
+        <div class="resulthead__q" id="resultQ"></div>
+      </div>
+      <div class="stack" id="resultStack"></div>
+    </section>
+
+    <!-- LIBRARY -->
+    <section class="view" id="view-library">
+      <div class="libhead">
+        <h2>Library</h2>
+        <p id="libCount"></p>
+      </div>
+      <div class="filter">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="libFilter" type="text" placeholder="Filter by topic…" autocomplete="off" />
+      </div>
+      <div id="samplesNote"></div>
+      <div class="stack" id="libList"></div>
+    </section>
+  </main>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav__inner">
+    <button class="navbtn is-active" data-view="search" id="navSearch">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      Search
+    </button>
+    <button class="navbtn" data-view="library" id="navLibrary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Library
+    </button>
+  </div>
+</nav>
+
+<!-- LOADING -->
+<div class="loading" id="loading" aria-live="polite" aria-hidden="true">
+  <div class="loading__box">
+    <div class="loading__glyph">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h7M9 11h5"/></svg>
+    </div>
+    <p class="loading__phase" id="loadingPhase"></p>
+    <div class="progress"><div class="progress__bar" id="progressBar"></div></div>
+    <p class="loading__note">Searching real literature — this takes a few seconds.</p>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Settings">
+  <div class="sheet__grip"></div>
+  <h3>Settings</h3>
+  <div class="field">
+    <label for="themeSel">Appearance</label>
+    <select id="themeSel">
+      <option value="dark">Dark</option>
+      <option value="light">Light</option>
+    </select>
+  </div>
+  <div class="sheet__row">
+    <button class="btn" id="saveSettings">Save</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   Trust Me Bro — logic
+   ============================================================ */
+"use strict";
+
+const LS = { key: "corpus.apiKey", model: "corpus.model", theme: "corpus.theme", lib: "corpus.library", seeded: "corpus.seeded", backend: "corpus.backend", server: "corpus.server", mode: "corpus.mode" };
+const DEFAULT_SERVER = "http://localhost:8765";
+const LEVELS = ["Strong", "Moderate", "Emerging", "Weak"];
+const DOTS = { Strong: 4, Moderate: 3, Emerging: 2, Weak: 1 };
+const STUDY_TYPES = ["Meta-analysis", "Systematic review", "RCT", "Observational", "Animal", "Review"];
+
+/* ---------- Real-paper sample dataset (clearly labelled "Sample").
+   Every study below is a real, published paper with a working link. ---------- */
+const SAMPLE_LIBRARY = [
+  {
+    id: "creatine-long-term",
+    question: "What does long-term creatine supplementation do?",
+    bottom_line: "Long-term creatine monohydrate supplementation (typically a loading phase then ~3-5 g/day) reliably increases muscle strength, lean/fat-free mass, and high-intensity exercise capacity when paired with resistance training, in both younger and older adults. Large meta-analyses and a comprehensive multi-decade safety review find no evidence it damages the kidneys or other organs in healthy people at commonly studied doses and durations, though cognitive benefits are real but smaller and less consistent.",
+    evidence_quality: { level: "Strong", rationale: "Dozens of RCTs synthesized across multiple meta-analyses on strength/body composition, plus a comprehensive multi-decade safety position stand." },
+    key_studies: [
+      { title: "Creatine supplementation during resistance training in older adults-a meta-analysis", journal: "Medicine and Science in Sports and Exercise", year: 2014, study_type: "Meta-analysis", sample_size: "12 RCTs, n=357 older adults (avg. age ~64)", finding: "Creatine + resistance training significantly increased total body mass and fat-free mass vs. RT alone (p<0.0001 for fat-free mass); greater gains in chest-press and leg-press strength, and better 30-second chair-stand performance (p=0.03).", url: "https://doi.org/10.1249/MSS.0000000000000220" },
+      { title: "Creatine Supplementation and Lower Limb Strength Performance: A Systematic Review and Meta-Analyses", journal: "Sports Medicine", year: 2015, study_type: "Meta-analysis", sample_size: "60 RCTs, n=1,297 (646 creatine / 651 placebo)", finding: "Significant global effect on lower-limb strength (effect size 0.235, 95% CI 0.125-0.346, p<0.001), largest for squat (0.336) and leg press (0.297); benefit held regardless of age, training status, or dosing protocol.", url: "https://doi.org/10.1007/s40279-015-0337-4" },
+      { title: "Effects of Creatine Supplementation on Renal Function: A Systematic Review and Meta-Analysis", journal: "Journal of Renal Nutrition", year: 2019, study_type: "Meta-analysis", sample_size: "15 studies (6 pooled)", finding: "No significant change in serum creatinine or plasma urea vs. placebo; concluded creatine does not induce renal damage at the doses/durations studied in people with healthy kidneys.", url: "https://doi.org/10.1053/j.jrn.2019.05.004" },
+      { title: "Effects of creatine supplementation on cognitive function of healthy individuals: A systematic review of randomized controlled trials", journal: "Experimental Gerontology", year: 2018, study_type: "Systematic review", sample_size: "6 RCTs, n=281", finding: "Some evidence creatine improves short-term memory and reasoning, particularly under sleep deprivation or in older adults; effects in well-rested healthy young adults were less consistent.", url: "https://doi.org/10.1016/j.exger.2018.04.013" },
+      { title: "ISSN position stand: safety and efficacy of creatine supplementation in exercise, sport, and medicine", journal: "Journal of the International Society of Sports Nutrition", year: 2017, study_type: "Review", sample_size: "narrative synthesis of the broader literature", finding: "Short- and long-term supplementation (including up to 30 g/day for 5 years in some studies) is safe and well-tolerated in healthy people and patient populations from infants to the elderly, with no consistent adverse organ effects in healthy people.", url: "https://doi.org/10.1186/s12970-017-0173-z" }
+    ],
+    practical_takeaway: "The most-studied protocol is a loading phase of ~20 g/day (split into 4 doses) for 5-7 days, then a maintenance dose of 3-5 g/day of creatine monohydrate taken consistently; benefits are largest with resistance training, and timing around workouts doesn't appear to matter much.",
+    disagreements: "Cognitive effects are more debated than the strength findings: some trials show benefits mainly under sleep deprivation, stress, vegetarian diets, or in older adults rather than well-rested young adults, and a widely cited 2024 meta-analysis required a 2025 corrigendum - underscoring how unsettled the cognition effect sizes still are.",
+    not_supported: "The evidence does not support common myths that creatine causes hair loss/balding, dehydration, cramping, or kidney damage in people with healthy kidneys. Long-term data beyond ~1-2 years, and data in people with pre-existing kidney disease, remain comparatively limited.",
+    sources_note: "Draws on PubMed-indexed RCTs and meta-analyses (Medicine & Science in Sports & Exercise, Sports Medicine, J Int Society of Sports Nutrition, J Renal Nutrition, Experimental Gerontology). Strength/body-composition evidence is extensive; multi-year safety and cognitive-effect evidence is comparatively thinner."
+  },
+  {
+    id: "bpc-157-safety",
+    question: "Is BPC-157 safe?",
+    bottom_line: "BPC-157's safety in humans is essentially unknown. Peer-reviewed human data amounts to two tiny, uncontrolled, unblinded pilot studies (an n=2 IV safety pilot and a 16-person knee-injection case series) that reported no adverse events - far short of establishing safety. It is not FDA-approved for any use, sits on the FDA's 'Category 2' bulk drug substance list (barring pharmacy compounding) over unresolved safety concerns, and almost all evidence of its effects comes from rodent studies.",
+    evidence_quality: { level: "Weak", rationale: "Human safety data limited to two small, uncontrolled pilot studies (under 20 subjects total); no RCT or completed published clinical trial, and nearly all efficacy evidence is preclinical (rodent)." },
+    key_studies: [
+      { title: "Emerging Use of BPC-157 in Orthopaedic Sports Medicine: A Systematic Review", journal: "HSS Journal", year: 2025, study_type: "Systematic review", sample_size: "36 studies (35 preclinical/animal, 1 human case series)", finding: "Preclinical (rodent) studies showed improved healing of muscle, tendon, ligament, and fracture injuries; only one human study was found, and the authors state plainly that 'no clinical safety data were found,' rating overall evidence as low quality (level IV-V).", url: "https://doi.org/10.1177/15563316251355551" },
+      { title: "Safety of Intravenous Infusion of BPC157 in Humans: A Pilot Study", journal: "Alternative Therapies in Health and Medicine", year: 2025, study_type: "Observational", sample_size: "n=2 healthy adults, open-label, no control", finding: "Single IV infusions (10 mg then 20 mg on consecutive days) produced no adverse events and no meaningful changes in cardiac, hepatic, renal, thyroid, or glucose biomarkers over ~2 days; authors call for larger controlled studies.", url: "https://pubmed.ncbi.nlm.nih.gov/40131143/" },
+      { title: "Intra-Articular Injection of BPC 157 for Multiple Types of Knee Pain", journal: "Alternative Therapies in Health and Medicine", year: 2021, study_type: "Observational", sample_size: "16 patients completed (uncontrolled, unblinded)", finding: "Retrospective chart review: 11/12 (91.6%) receiving BPC-157 alone reported improved knee pain; no adverse events reported, but no comparator group, blinding, or objective outcome measures.", url: "https://pubmed.ncbi.nlm.nih.gov/34324435/" },
+      { title: "Multifunctionality and Possible Medical Application of the BPC 157 Peptide - Literature and Patent Review", journal: "Pharmaceuticals", year: 2025, study_type: "Review", sample_size: "narrative literature/patent review", finding: "Describes a 'desirable safety profile' from preclinical data but states BPC-157 'has not been approved for use in standard medicine by the FDA and other global regulatory authorities due to the absence of sufficient and comprehensive clinical studies'; temporarily on WADA's prohibited list in 2022.", url: "https://doi.org/10.3390/ph18020185" },
+      { title: "The promoting effect of pentadecapeptide BPC 157 on tendon healing involves tendon outgrowth, cell survival, and cell migration", journal: "Journal of Applied Physiology", year: 2011, study_type: "Animal", sample_size: "rat Achilles tendon explants + cultured fibroblasts (ex vivo/in vitro)", finding: "BPC-157 accelerated tendon fibroblast outgrowth, increased survival under oxidative stress, and dose-dependently increased migration - representative of the mechanistic rodent-tissue data behind healing claims, with no bearing on human safety.", url: "https://doi.org/10.1152/japplphysiol.00945.2010" }
+    ],
+    practical_takeaway: null,
+    disagreements: "The Croatian research group that authored most of the BPC-157 animal literature describes its preclinical safety as excellent (no lethal dose found in rodents); independent reviewers counter that this reflects one lab's rodent data, not independent replication or any human safety trial, and note the FDA's Category 2 compounding restriction was based on unresolved safety questions.",
+    not_supported: "The evidence does NOT support claims that BPC-157 is 'safe for humans,' 'clinically proven,' or FDA-approved - it has no FDA approval, sits on the FDA's Category 2 bulk drug substance list, and was WADA-prohibited in 2022. Broad healing claims rest almost entirely on rodent studies from a small number of labs.",
+    sources_note: "Human evidence is limited to a 2-person open-label IV safety pilot and a 16-person uncontrolled case series (both in a low-impact journal), plus a 2025 systematic review that found only that one human study and reported 'no clinical safety data.' All other evidence is preclinical; there is no completed, published, registered human clinical trial."
+  },
+  {
+    id: "optimal-sleep-duration",
+    question: "What is the optimal sleep duration?",
+    bottom_line: "For most healthy adults, roughly 7 hours of sleep per night is the point of lowest risk: both shorter and longer sleep are consistently associated with higher risk of all-cause mortality, cardiovascular disease, diabetes, and obesity in large dose-response meta-analyses (a U-shaped curve). The joint American Academy of Sleep Medicine / Sleep Research Society consensus recommends 7 or more hours nightly for adults, without a strict upper cutoff.",
+    evidence_quality: { level: "Strong", rationale: "Multiple large dose-response meta-analyses spanning millions of participants across dozens of prospective cohorts, plus a formal multi-society expert consensus." },
+    key_studies: [
+      { title: "Sleep Duration and All-Cause Mortality: A Systematic Review and Meta-Analysis of Prospective Studies", journal: "Sleep", year: 2010, study_type: "Meta-analysis", sample_size: "16 studies, n=1,382,999; 112,566 deaths", finding: "Short sleep raised mortality risk (RR 1.12, 95% CI 1.06-1.18) and long sleep raised it more (RR 1.30, 95% CI 1.22-1.38) vs. average sleepers - a landmark U-shaped association.", url: "https://doi.org/10.1093/sleep/33.5.585" },
+      { title: "Sleep Duration and All-Cause Mortality and Cardiovascular Events: A Systematic Review and Dose-Response Meta-Analysis", journal: "Journal of the American Heart Association", year: 2017, study_type: "Meta-analysis", sample_size: "141 cohort reports, n=3,582,016; 241,107 deaths", finding: "~7 hours/day was the lowest-risk point; each 1-hour shorter was linked to RR 1.06 (mortality) and 1.06 (CVD), each 1-hour longer to RR 1.13 (mortality) and 1.12 (CVD) - consistent U-shaped curves.", url: "https://doi.org/10.1161/JAHA.117.005947" },
+      { title: "Short sleep duration and health outcomes: a systematic review, meta-analysis, and meta-regression", journal: "Sleep Medicine", year: 2017, study_type: "Meta-analysis", sample_size: "153 studies, n=5,172,710", finding: "Short sleep linked to higher risk of mortality (RR 1.12), diabetes (1.37), hypertension (1.17), CVD (1.16), coronary heart disease (1.26), and obesity (1.38); mortality risk rose significantly below ~6 hours.", url: "https://doi.org/10.1016/j.sleep.2016.08.006" },
+      { title: "Long sleep duration and health outcomes: A systematic review, meta-analysis and meta-regression", journal: "Sleep Medicine Reviews", year: 2018, study_type: "Meta-analysis", sample_size: "137 studies, n=5,134,036", finding: "Long sleep linked to higher risk of mortality (RR 1.39), diabetes (1.26), CVD (1.25), stroke (1.46), coronary heart disease (1.24), and obesity (1.08) - the upper arm of the U-shaped curve.", url: "https://doi.org/10.1016/j.smrv.2017.06.011" },
+      { title: "Recommended Amount of Sleep for a Healthy Adult: A Joint Consensus Statement of the AASM and Sleep Research Society", journal: "Sleep", year: 2015, study_type: "Review", sample_size: "15-member expert consensus panel (RAND method)", finding: "Adults should sleep 7 or more hours per night regularly; less than 7 hours is associated with adverse outcomes. No firm upper limit, though >9 hours 'may be appropriate for young adults, those recovering from sleep debt, and people with illnesses.'", url: "https://doi.org/10.5665/sleep.4716" }
+    ],
+    practical_takeaway: "Aim for at least 7 hours of sleep per night as a baseline; going much below 7, or regularly well above 9, is associated with worse outcomes in observational data - though individual need varies and these are population-level associations, not a guarantee for any one person.",
+    disagreements: "It's debated how much of the long-sleep risk is causal vs. reverse causation - long sleep is often a marker of underlying illness, depression, or poor sleep quality (e.g., sleep apnea) rather than a cause of harm, a caveat meta-analyses explicitly flag when calling for research into whether the link is 'causal and modifiable.'",
+    not_supported: "The evidence does not support that more sleep is always better, or that one fixed number (e.g., exactly 8 hours) is optimal for everyone regardless of age; nor that 'sleep debt' can be fully repaid by long catch-up sleep, since habitually long sleep itself shows an adverse association.",
+    sources_note: "Draws on large PubMed-indexed prospective-cohort meta-analyses (Sleep, Sleep Medicine, Sleep Medicine Reviews, JAHA) and the joint AASM/Sleep Research Society consensus. This evidence is almost entirely observational, so it establishes association/dose-response rather than proven causation."
+  }
+];
+
+/* ---------- The research prompt + tool (the hard rule lives here) ---------- */
+const SYSTEM_PROMPT = `You are Trust Me Bro, a rigorous evidence synthesist. Answer the user's health/science question strictly from the real, peer-reviewed literature you retrieve with the web_search tool — never from memory, and never from social-media-style claims.
+
+SEARCH: Use web_search to find real studies. Prioritise PubMed, Europe PMC, ClinicalTrials.gov, and peer-reviewed journals. Search for systematic reviews and meta-analyses first (top of the evidence pyramid), then RCTs, then large observational studies. Prefer recent, higher-quality designs. Run a few focused searches; rephrase with synonyms if needed.
+
+NON-NEGOTIABLE RULES:
+1. Only cite real papers that appear in your web_search results. Never invent a title, journal, year, DOI, sample size, finding, or link.
+2. Every study's link MUST be a real URL from your search results — a DOI link (https://doi.org/...) or the PubMed/PMC/journal/ClinicalTrials page. If you don't have a real link for a study, do not include it.
+3. If the literature doesn't answer the question well, say so plainly in bottom_line and set evidence_quality accordingly, and return few or no studies rather than padding. "The evidence is thin / mostly animal / contested" is a valid, important answer.
+4. Prioritise the strongest, most recent designs. When a widely-repeated claim is NOT well supported, say so in not_supported.
+5. Do not give personal medical advice; you summarise research.
+
+Grade overall evidence honestly as one of: Strong (multiple consistent meta-analyses / well-powered RCTs), Moderate (some RCTs or strong consistent observational data), Emerging (mainly early human data, small studies, or preliminary), Weak (mostly animal/in-vitro, or contested with little human data).
+
+Classify each study's design as one of: Meta-analysis, Systematic review, RCT, Observational, Animal, Review.
+
+After searching, you MUST call the present_research tool exactly once with your structured summary. Do not write a prose answer instead of calling the tool.`;
+
+const PRESENT_TOOL = {
+  name: "present_research",
+  description: "Present the structured, evidence-based answer. Call exactly once after searching the literature.",
+  input_schema: {
+    type: "object",
+    properties: {
+      bottom_line: { type: "string", description: "Plain-English answer, 2-3 sentences. Lead with what the evidence supports; if weak or mixed, say so up front." },
+      evidence_quality: {
+        type: "object",
+        properties: {
+          level: { type: "string", enum: LEVELS, description: "Overall evidence grade." },
+          rationale: { type: "string", description: "One line on why (e.g. 'multiple meta-analyses of RCTs' vs 'animal studies only')." }
+        },
+        required: ["level", "rationale"]
+      },
+      key_studies: {
+        type: "array",
+        description: "4-8 studies, strongest designs first. Only real papers from search results.",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            journal: { type: "string" },
+            year: { type: "integer" },
+            study_type: { type: "string", enum: STUDY_TYPES },
+            sample_size: { type: "string", description: "e.g. '12 RCTs, n=450' or 'n not reported'." },
+            finding: { type: "string", description: "The specific result with effect sizes/direction where reported." },
+            url: { type: "string", description: "A real, working link from search results." }
+          },
+          required: ["title", "journal", "year", "study_type", "finding", "url"]
+        }
+      },
+      practical_takeaway: { type: "string", description: "Dose/protocol/what it means in practice, where the research supports one. Empty string if not applicable." },
+      disagreements: { type: "string", description: "Genuine expert disagreement, if any. Empty string if none." },
+      not_supported: { type: "string", description: "Common claims the evidence does NOT back. Empty string if none." },
+      sources_note: { type: "string", description: "Which databases/journals the evidence draws on; note if coverage was thin." }
+    },
+    required: ["bottom_line", "evidence_quality", "key_studies", "sources_note"]
+  }
+};
+
+/* ---------- Storage helpers ---------- */
+function lsGet(k, fallback) { try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch (e) { return fallback; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+function getKey()     { return lsGet(LS.key, ""); }
+function getModel()   { return lsGet(LS.model, "claude-sonnet-4-6"); }
+function getBackend() { return lsGet(LS.backend, "local"); }   // "local" (subscription) | "api" (pay-as-you-go)
+function getServer()  { return (lsGet(LS.server, DEFAULT_SERVER) || DEFAULT_SERVER).replace(/\/+$/, ""); }
+
+function loadLibrary() {
+  try { const raw = lsGet(LS.lib, "[]"); const arr = JSON.parse(raw); return Array.isArray(arr) ? arr : []; }
+  catch (e) { return []; }
+}
+function saveLibrary(arr) { lsSet(LS.lib, JSON.stringify(arr)); }
+
+/* ---------- State ---------- */
+let library = loadLibrary();
+let currentView = "search";
+
+/* Seed samples, so a fresh install (and the CSP-locked preview) is explorable.
+   Versioned: refreshes the sample set when the user has no real entries yet. */
+const SEED_VERSION = "2";
+function maybeSeedSamples() {
+  if (lsGet(LS.seeded, "") === SEED_VERSION) return;
+  const hasReal = library.some((e) => !e.isSample);
+  if (!hasReal) {
+    library = SAMPLE_LIBRARY.map((s) => ({
+      id: s.id, question: s.question, date: null, isSample: true, result: s
+    }));
+    saveLibrary(library);
+  }
+  lsSet(LS.seeded, SEED_VERSION);
+}
+
+/* ---------- DOM ---------- */
+const $ = (id) => document.getElementById(id);
+const views = { search: $("view-search"), result: $("view-result"), library: $("view-library") };
+
+/* ---------- Utilities ---------- */
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function normalizeLevel(l) {
+  if (!l) return "Moderate";
+  const t = String(l).trim().toLowerCase();
+  for (const L of LEVELS) if (L.toLowerCase() === t) return L;
+  if (t.startsWith("prelim")) return "Emerging";
+  return "Moderate";
+}
+function normalizeType(t) {
+  if (!t) return "Review";
+  const s = String(t).trim().toLowerCase();
+  for (const T of STUDY_TYPES) if (T.toLowerCase() === s) return T;
+  if (s.includes("meta")) return "Meta-analysis";
+  if (s.includes("systematic")) return "Systematic review";
+  if (s.includes("random") || s === "rct") return "RCT";
+  if (s.includes("cohort") || s.includes("observ") || s.includes("cross")) return "Observational";
+  if (s.includes("mice") || s.includes("rat") || s.includes("animal") || s.includes("vitro")) return "Animal";
+  return "Review";
+}
+function normalizeResult(input) {
+  const r = input || {};
+  const eq = r.evidence_quality || {};
+  return {
+    bottom_line: String(r.bottom_line || "").trim() || "No answer was produced.",
+    evidence_quality: { level: normalizeLevel(eq.level), rationale: String(eq.rationale || "").trim() },
+    key_studies: (Array.isArray(r.key_studies) ? r.key_studies : []).map((s) => ({
+      title: String(s.title || "Untitled").trim(),
+      journal: String(s.journal || "").trim(),
+      year: s.year || "",
+      study_type: normalizeType(s.study_type),
+      sample_size: String(s.sample_size || "").trim(),
+      finding: String(s.finding || "").trim(),
+      url: String(s.url || "").trim()
+    })),
+    practical_takeaway: (r.practical_takeaway || "").trim(),
+    disagreements: (r.disagreements || "").trim(),
+    not_supported: (r.not_supported || "").trim(),
+    sources_note: (r.sources_note || "").trim()
+  };
+}
+function fmtDate(iso) {
+  if (!iso) return "";
+  try { return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }); }
+  catch (e) { return ""; }
+}
+function dotsMarkup(level, mini) {
+  const n = DOTS[level] || 0;
+  let out = "";
+  for (let i = 0; i < 4; i++) out += `<i class="${i < n ? "on" : ""}"></i>`;
+  return out;
+}
+
+/* ---------- Rendering ---------- */
+function renderChips() {
+  const wrap = $("chips");
+  const arrow = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>`;
+  const qs = ["What does long-term creatine supplementation do?", "Is BPC-157 safe?", "What is the optimal sleep duration?"];
+  wrap.innerHTML = qs.map((q) => `<button class="chip" data-q="${esc(q)}">${arrow}<span>${esc(q)}</span></button>`).join("");
+  wrap.querySelectorAll(".chip").forEach((c) => c.addEventListener("click", () => {
+    submitQuestion(c.getAttribute("data-q"), getMode());
+  }));
+}
+
+function studyMarkup(s, i) {
+  const meta = [s.year, s.journal, s.sample_size ? "n: " + s.sample_size : ""].filter(Boolean).map(esc).join(" &middot; ");
+  const link = s.url
+    ? `<a class="study__link" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">View source <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>`
+    : `<span class="study__link nolink">No link provided</span>`;
+  return `<div class="study reveal" style="--i:${i}">
+    <div class="study__meta"><span class="tag">${esc(s.study_type)}</span><span class="study__metatext">${meta}</span></div>
+    <p class="study__title">${esc(s.title)}</p>
+    ${s.finding ? `<p class="study__finding">${esc(s.finding)}</p>` : ""}
+    ${link}
+  </div>`;
+}
+
+/* ---- shared card builders (used by both the saved render and the live stream) ---- */
+function cardBottomLine(text, i) {
+  return `<div class="card card--hero reveal" style="--i:${i}">
+    <p class="card__label"><span class="k">§</span> Bottom line</p>
+    <p class="bottomline">${esc(text)}</p></div>`;
+}
+function cardEvidence(level, rationale, i) {
+  const lvl = level || "Moderate";
+  return `<div class="card reveal" style="--i:${i}">
+    <p class="card__label">Evidence quality</p>
+    <div class="evq"><div class="evq__top">
+      <span class="badge badge--${lvl.toLowerCase()}"><span class="badge__dots">${dotsMarkup(lvl)}</span>${esc(lvl)}</span>
+    </div>${rationale ? `<p class="evq__why">${esc(rationale)}</p>` : ""}</div></div>`;
+}
+function cardStudiesOpen(i) {
+  return `<div class="card reveal" style="--i:${i}">
+    <p class="card__label">Key studies <span style="color:var(--ink-3);font-weight:600;letter-spacing:0;text-transform:none;">· strongest first</span></p>
+    <div class="studies" id="studiesEl"></div></div>`;
+}
+function cardProse(label, text, dim, i, glyph) {
+  return `<div class="card reveal" style="--i:${i}">
+    <p class="card__label">${glyph ? `<span class="k">${glyph}</span> ` : ""}${label}</p>
+    <p class="prose${dim ? " dim" : ""}">${esc(text)}</p></div>`;
+}
+function cardSources(text, i) {
+  return `<div class="card reveal" style="--i:${i}">
+    <p class="card__label">Sources</p>
+    ${text ? `<p class="sources">${esc(text)}</p>` : `<p class="sources">—</p>`}</div>`;
+}
+function cardFooter(i) {
+  return `<div class="card reveal" style="--i:${i}"><button class="btn-ghost" id="rerunBtn">Re-run for fresh results</button></div>
+  <div class="disclaimer reveal" style="--i:${i};margin-top:6px;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+    <span>Not medical advice — a summary of published research, not personal medical guidance.</span></div>`;
+}
+function savedBanner(entry) {
+  return `<div class="savedbanner reveal" style="--i:0">
+    <span>Saved answer${entry.date ? " from " + esc(fmtDate(entry.date)) : ""} — opened instantly.</span>
+    <button class="btn-ghost" id="rerunTop">Re-run for fresh results</button></div>`;
+}
+function wireRerun(question) {
+  ["rerunBtn", "rerunTop"].forEach((id) => { const b = $(id); if (b) b.addEventListener("click", () => submitQuestion(question, getMode(), true)); });
+}
+
+/* Render a complete (saved) entry all at once. */
+function renderResult(entry, opts) {
+  opts = opts || {};
+  const r = entry.result;
+  const stack = $("resultStack");
+  $("resultQ").textContent = entry.question;
+
+  let i = 0;
+  const blocks = [];
+  if (opts.saved) blocks.push(savedBanner(entry));
+  blocks.push(cardBottomLine(r.bottom_line, i++));
+  blocks.push(cardEvidence(r.evidence_quality.level, r.evidence_quality.rationale, i++));
+  if (r.key_studies.length) {
+    blocks.push(`<div class="card reveal" style="--i:${i++}">
+      <p class="card__label">Key studies <span style="color:var(--ink-3);font-weight:600;letter-spacing:0;text-transform:none;">· strongest first</span></p>
+      <div class="studies">${r.key_studies.map((s, k) => studyMarkup(s, k)).join("")}</div></div>`);
+  }
+  if (r.practical_takeaway) blocks.push(cardProse("Practical takeaway", r.practical_takeaway, false, i++, "→"));
+  if (r.disagreements) blocks.push(cardProse("Where experts disagree", r.disagreements, true, i++));
+  if (r.not_supported) blocks.push(cardProse("Not well supported", r.not_supported, true, i++));
+  blocks.push(cardSources(r.sources_note, i++));
+  blocks.push(cardFooter(i++));
+
+  stack.innerHTML = blocks.join("");
+  wireRerun(entry.question);
+  requestAnimationFrame(() => stack.querySelectorAll(".reveal").forEach((el) => el.classList.add("in")));
+}
+
+function renderLibrary() {
+  const list = $("libList");
+  const note = $("samplesNote");
+  const filter = ($("libFilter").value || "").trim().toLowerCase();
+  const entries = library
+    .filter((e) => !filter || e.question.toLowerCase().includes(filter))
+    .slice()
+    .sort((a, b) => {
+      // real entries (with date) newest first; samples after
+      if (!!a.date === !!b.date) return (b.date || "").localeCompare(a.date || "");
+      return a.date ? -1 : 1;
+    });
+
+  const total = library.length;
+  const shown = entries.length;
+  $("libCount").textContent = !total
+    ? "Nothing saved yet"
+    : filter
+      ? `${shown} of ${total} ${total === 1 ? "entry" : "entries"}`
+      : `${shown} ${shown === 1 ? "entry" : "entries"}`;
+
+  const hasSamples = library.some((e) => e.isSample);
+  note.innerHTML = hasSamples
+    ? `<div class="samples-note"><span>Showing sample entries so you can explore the format. Run a real search to build your own library.</span><button class="link-btn" id="clearSamples">Clear samples</button></div>`
+    : "";
+  if (hasSamples) $("clearSamples").addEventListener("click", clearSamples);
+
+  if (!entries.length) {
+    list.innerHTML = `<div class="empty">
+      <div class="empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+      <h3>${filter ? "No matches" : "Your library is empty"}</h3>
+      <p>${filter ? "Try a different search term." : "Every question you research is saved here — tap to reopen it instantly, no re-querying."}</p>
+      ${filter ? "" : `<button class="btn" id="goSearch">Ask a question</button>`}
+    </div>`;
+    const gs = $("goSearch"); if (gs) gs.addEventListener("click", () => setView("search"));
+    return;
+  }
+
+  list.innerHTML = entries.map((e, i) => {
+    const lvl = e.result.evidence_quality.level;
+    return `<button class="libcard reveal" style="--i:${i}" data-id="${esc(e.id)}">
+      <div class="libcard__body">
+        <p class="libcard__q">${esc(e.question)}</p>
+        <div class="libcard__meta">
+          <span class="minibadge minibadge--${lvl.toLowerCase()}"><span class="dots">${dotsMarkup(lvl, true)}</span>${esc(lvl)}</span>
+          ${e.date ? `<span class="libcard__date">${esc(fmtDate(e.date))}</span>` : `<span class="sample-tag">Sample</span>`}
+        </div>
+      </div>
+      <span class="libcard__del" role="button" tabindex="0" aria-label="Delete" data-del="${esc(e.id)}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+      </span>
+    </button>`;
+  }).join("");
+
+  list.querySelectorAll(".libcard").forEach((card) => {
+    card.addEventListener("click", (ev) => {
+      const del = ev.target.closest("[data-del]");
+      if (del) { ev.stopPropagation(); deleteEntry(del.getAttribute("data-del")); return; }
+      openEntry(card.getAttribute("data-id"));
+    });
+  });
+  requestAnimationFrame(() => list.querySelectorAll(".reveal").forEach((el) => el.classList.add("in")));
+}
+
+/* ---------- Actions ---------- */
+function setView(v) {
+  currentView = v;
+  Object.entries(views).forEach(([k, el]) => el.classList.toggle("is-active", k === v));
+  $("navSearch").classList.toggle("is-active", v === "search");
+  $("navLibrary").classList.toggle("is-active", v === "library");
+  if (v === "library") renderLibrary();
+  if (v === "search") clearInput();
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function openEntry(id, opts) {
+  const e = library.find((x) => x.id === id);
+  if (!e) return;
+  renderResult(e, opts);
+  setView("result");
+}
+
+function deleteEntry(id) {
+  library = library.filter((e) => e.id !== id);
+  saveLibrary(library);
+  renderLibrary();
+  toast("Entry deleted");
+}
+function clearSamples() {
+  library = library.filter((e) => !e.isSample);
+  saveLibrary(library);
+  renderLibrary();
+}
+
+function saveEntry(question, result) {
+  const entry = {
+    id: "q-" + Date.now().toString(36) + "-" + Math.floor(performance.now()).toString(36),
+    question,
+    date: new Date().toISOString(),
+    result
+  };
+  // de-dupe: drop a prior non-sample entry with the same question
+  library = library.filter((e) => e.isSample || e.question.trim().toLowerCase() !== question.trim().toLowerCase());
+  library.unshift(entry);
+  saveLibrary(library);
+  return entry;
+}
+
+/* ---------- Loading UI ---------- */
+let loadTimer = null;
+const PHASES = [
+  { t: 0,     label: "Searching PubMed & Europe PMC…", pct: 18 },
+  { t: 3800,  label: "Scanning ClinicalTrials.gov & journals…", pct: 40 },
+  { t: 9000,  label: "Reading the studies…", pct: 64 },
+  { t: 15000, label: "Weighing the evidence…", pct: 84 },
+  { t: 22000, label: "Writing the summary…", pct: 93 }
+];
+function startLoading() {
+  const box = $("loading"); box.classList.add("is-active"); box.setAttribute("aria-hidden", "false");
+  const phaseEl = $("loadingPhase"); const bar = $("progressBar");
+  let idx = -1;
+  const step = () => {
+    idx++;
+    if (idx >= PHASES.length) return;
+    const p = PHASES[idx];
+    phaseEl.innerHTML = `<span>${p.label}</span>`;
+    bar.style.width = p.pct + "%";
+    const next = PHASES[idx + 1];
+    if (next) loadTimer = setTimeout(step, next.t - p.t);
+  };
+  step();
+}
+function stopLoading(complete) {
+  clearTimeout(loadTimer);
+  const box = $("loading"); const bar = $("progressBar");
+  if (complete) bar.style.width = "100%";
+  setTimeout(() => { box.classList.remove("is-active"); box.setAttribute("aria-hidden", "true"); bar.style.width = "0%"; }, complete ? 260 : 0);
+}
+
+/* ---------- Mode + input helpers ---------- */
+function getMode() { return lsGet(LS.mode, "quick") === "deep" ? "deep" : "quick"; }
+function clearInput() { const q = $("q"); if (q) { q.value = ""; q.style.height = "auto"; } }
+
+/* ---------- Streaming render ---------- */
+let streamState = null;
+let hbTimer = null;
+function stopHeartbeat() { clearInterval(hbTimer); hbTimer = null; }
+function startHeartbeat() {
+  const msgs = ["Searching the literature…", "Reading the studies…", "Cross-checking sources…", "Weighing the evidence…"];
+  let tick = 0, k = 0;
+  stopHeartbeat();
+  hbTimer = setInterval(() => {
+    const st = streamState; const label = $("ssLabel"), det = $("ssDetail");
+    if (!st || !label) { stopHeartbeat(); return; }
+    tick++;
+    const el = Math.round((Date.now() - st.t0) / 1000);
+    if (st.phase !== "writing") { if (tick % 5 === 0) k = (k + 1) % msgs.length; label.textContent = msgs[k]; }
+    if (det) det.textContent = (st.detail ? "“" + st.detail + "”  ·  " : "") + el + "s";
+  }, 1000);
+}
+
+function ssAppend(html) {
+  const stack = $("resultStack");
+  stack.insertAdjacentHTML("beforeend", html);
+  requestAnimationFrame(() => stack.querySelectorAll(".reveal:not(.in)").forEach((el) => el.classList.add("in")));
+}
+function streamStart(question, mode, controller) {
+  $("resultQ").textContent = question;
+  const stack = $("resultStack");
+  stack.innerHTML = `<div class="streamstatus" id="streamStatus"><span class="spin"></span><span class="streamstatus__label" id="ssLabel">Starting research…</span><span class="streamstatus__detail" id="ssDetail"></span><button type="button" class="streamstatus__cancel" id="ssCancel">Cancel</button></div>`;
+  streamState = { question, mode, phase: "search", detail: "", t0: Date.now(), cancelled: false, controller, result: { bottom_line: "", evidence_quality: { level: "Moderate", rationale: "" }, key_studies: [], practical_takeaway: "", disagreements: "", not_supported: "", sources_note: "" } };
+  setView("result");
+  startHeartbeat();
+  $("ssCancel").addEventListener("click", cancelStream);
+}
+function cancelStream() {
+  const st = streamState;
+  if (!st) return;
+  st.cancelled = true;
+  stopHeartbeat();
+  if (st.controller) st.controller.abort();
+  streamState = null;
+  setView("search");
+}
+function streamStatus(phase, detail) {
+  const st = streamState; if (!st) return;
+  if (phase) st.phase = phase;
+  if (detail && detail !== "from cache") st.detail = detail;
+  const label = $("ssLabel");
+  const map = { search: "Searching the literature…", reading: "Reading the studies…", writing: "Writing the summary…" };
+  if (label && map[phase]) label.textContent = map[phase];
+}
+function streamSection(ev) {
+  const st = streamState; if (!st) return;
+  if (ev.kind === "bottom_line") { st.result.bottom_line = ev.v; ssAppend(cardBottomLine(ev.v, 0)); }
+  else if (ev.kind === "evidence") { st.result.evidence_quality = { level: ev.level, rationale: ev.rationale }; ssAppend(cardEvidence(ev.level, ev.rationale, 0)); }
+  else if (ev.kind === "study") {
+    st.result.key_studies.push(ev.study);
+    if (!$("studiesEl")) ssAppend(cardStudiesOpen(0));
+    const el = $("studiesEl");
+    if (el) { el.insertAdjacentHTML("beforeend", studyMarkup(ev.study, 0)); requestAnimationFrame(() => el.querySelectorAll(".reveal:not(.in)").forEach((x) => x.classList.add("in"))); }
+  }
+  else if (ev.kind === "takeaway") { st.result.practical_takeaway = ev.v; ssAppend(cardProse("Practical takeaway", ev.v, false, 0, "→")); }
+  else if (ev.kind === "disagreements") { st.result.disagreements = ev.v; ssAppend(cardProse("Where experts disagree", ev.v, true, 0)); }
+  else if (ev.kind === "not_supported") { st.result.not_supported = ev.v; ssAppend(cardProse("Not well supported", ev.v, true, 0)); }
+  else if (ev.kind === "sources") { st.result.sources_note = ev.v; ssAppend(cardSources(ev.v, 0)); }
+}
+function streamDone(result) {
+  const st = streamState; if (!st) return;
+  stopHeartbeat();
+  const status = $("streamStatus"); if (status) status.remove();
+  const r = (result && result.bottom_line) ? result : st.result;
+  if (!r || !r.bottom_line) { streamError("No answer was produced. Try again."); return; }
+  if (!$("resultStack").querySelector(".card")) {
+    // nothing streamed (e.g. server cache hit) — render the whole thing at once
+    const entry = saveEntry(st.question, r);
+    renderResult(entry);
+  } else {
+    ssAppend(cardFooter(0));
+    wireRerun(st.question);
+    saveEntry(st.question, r);
+  }
+  streamState = null;
+}
+function streamError(msg) {
+  stopHeartbeat();
+  const st = streamState;
+  const question = st ? st.question : "";
+  const mode = st ? st.mode : getMode();
+  const status = $("streamStatus");
+  if (status) {
+    status.classList.add("is-error");
+    status.innerHTML = `<span class="streamstatus__label"><span style="color:var(--ev-weak);font-weight:700;">⚠</span> ${esc(msg)}</span><button type="button" class="btn-ghost" id="ssRetry">Try again</button>`;
+    const retry = $("ssRetry");
+    if (retry) retry.addEventListener("click", () => submitQuestion(question, mode, true));
+  } else {
+    toast(msg, true);
+  }
+  streamState = null;
+}
+
+/* ---------- Stream driver ---------- */
+const STREAM_TIMEOUT_MS = 240000; // 240s client-side ceiling — never leave a spinner running forever
+async function streamQuery(question, mode) {
+  const controller = new AbortController();
+  streamStart(question, mode, controller);
+  const st = streamState;
+  let timedOut = false;
+  const timeoutId = setTimeout(() => { timedOut = true; controller.abort(); }, STREAM_TIMEOUT_MS);
+  // Resolves an abort (user-cancel or timeout); returns true if the caller should stop.
+  const finishedByAbort = () => {
+    clearTimeout(timeoutId);
+    if (st.cancelled) return true; // silent — already routed back to search
+    if (timedOut) { streamError("The search took too long and timed out."); return true; }
+    return false;
+  };
+  let resp;
+  try {
+    resp = await fetch("/api/research", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question, mode }), signal: controller.signal });
+  } catch (e) {
+    if (finishedByAbort()) return;
+    streamError("Couldn't reach the research service. Check your connection."); return;
+  }
+  if (!resp.ok || !resp.body) {
+    clearTimeout(timeoutId);
+    let err = "Request failed (" + resp.status + ")."; try { const j = await resp.json(); err = j.error || err; } catch (e) {}
+    streamError(err); return;
+  }
+  const reader = resp.body.getReader(), dec = new TextDecoder();
+  let buf = "", gotDone = false, gotError = false;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) !== -1) {
+        const line = buf.slice(0, nl); buf = buf.slice(nl + 1);
+        if (!line.trim()) continue;
+        let ev; try { ev = JSON.parse(line); } catch (e) { continue; }
+        if (ev.type === "status") streamStatus(ev.phase, ev.detail);
+        else if (ev.type === "section") streamSection(ev);
+        else if (ev.type === "done") { gotDone = true; streamDone(ev.result); }
+        else if (ev.type === "error") { gotError = true; streamError(ev.error); }
+      }
+    }
+  } catch (e) { /* connection dropped or aborted */ }
+  if (finishedByAbort() || gotDone || gotError) return;
+  if (streamState && streamState.result.bottom_line) streamDone(streamState.result);
+  else streamError("The connection ended before the answer finished. Try again.");
+}
+
+/* ---------- Submit flow ---------- */
+let busy = false;
+async function submitQuestion(question, mode, forceLive) {
+  question = (question || "").trim();
+  if (!question || busy) return;
+  mode = (mode === "deep" || mode === "quick") ? mode : getMode();
+  clearInput();
+
+  // Local library first: if this exact topic is already saved, open it instantly with a re-run option.
+  if (!forceLive) {
+    const m = library.find((e) => e.question.trim().toLowerCase() === question.toLowerCase());
+    if (m) { openEntry(m.id, { saved: true }); return; }
+  }
+
+  busy = true;
+  $("searchBtn").disabled = true;
+  try { await streamQuery(question, mode); }
+  catch (err) { toast((err && err.friendly) || "Something went wrong.", true); }
+  finally { busy = false; $("searchBtn").disabled = false; }
+}
+
+/* ---------- Settings ---------- */
+function openSettings() {
+  $("themeSel").value = lsGet(LS.theme, "dark");
+  $("scrim").classList.add("is-active");
+  $("sheet").classList.add("is-active");
+}
+function closeSettings() {
+  $("scrim").classList.remove("is-active");
+  $("sheet").classList.remove("is-active");
+}
+function syncBackendUI() {
+  const local = $("backendSel").value === "local";
+  $("fieldServer").style.display = local ? "" : "none";
+  $("fieldKey").style.display = local ? "none" : "";
+  $("fieldModel").style.display = local ? "none" : "";
+}
+async function checkServer() {
+  const el = $("serverState");
+  const base = ($("serverUrl").value || DEFAULT_SERVER).trim().replace(/\/+$/, "");
+  el.innerHTML = `<span>…</span> Checking server…`;
+  try {
+    const r = await fetch(base + "/health");
+    const j = await r.json();
+    el.innerHTML = `<span class="ok">●</span> Server reachable${j && j.model ? " · model " + esc(j.model) : ""}.`;
+  } catch (e) {
+    el.innerHTML = `<span>○</span> Not reachable yet — run <strong>node server.js</strong> in the research-app folder.`;
+  }
+}
+function updateKeyState() {
+  const has = !!getKey();
+  $("keyState").innerHTML = has
+    ? `<span class="ok">●</span> A key is saved in this browser.`
+    : `<span>○</span> No key saved yet.`;
+}
+function applyTheme(t) { document.documentElement.setAttribute("data-theme", t === "light" ? "light" : "dark"); }
+
+function toast(msg, isErr) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.toggle("err", !!isErr);
+  t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), isErr ? 5200 : 2600);
+}
+
+/* ---------- Wire up ---------- */
+function init() {
+  applyTheme(lsGet(LS.theme, "dark"));
+  maybeSeedSamples();
+  renderChips();
+
+  // auto-grow textarea
+  const q = $("q");
+  const grow = () => { q.style.height = "auto"; q.style.height = Math.min(q.scrollHeight, 200) + "px"; };
+  q.addEventListener("input", grow);
+  q.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submitQuestion(q.value, getMode()); }
+  });
+
+  $("searchForm").addEventListener("submit", (e) => { e.preventDefault(); submitQuestion(q.value, getMode()); });
+
+  // Quick / Deep toggle
+  const modeBtns = $("modeToggle").querySelectorAll("button");
+  const syncMode = () => { const m = getMode(); modeBtns.forEach((b) => b.classList.toggle("on", b.getAttribute("data-mode") === m)); };
+  modeBtns.forEach((b) => b.addEventListener("click", () => { lsSet(LS.mode, b.getAttribute("data-mode")); syncMode(); }));
+  syncMode();
+
+  $("backBtn").addEventListener("click", () => setView(library.length ? "library" : "search"));
+
+  document.querySelectorAll(".navbtn").forEach((b) => b.addEventListener("click", () => setView(b.getAttribute("data-view"))));
+
+  $("libFilter").addEventListener("input", renderLibrary);
+
+  $("settingsBtn").addEventListener("click", () => openSettings(false));
+  $("scrim").addEventListener("click", closeSettings);
+  $("saveSettings").addEventListener("click", () => {
+    lsSet(LS.theme, $("themeSel").value);
+    applyTheme($("themeSel").value);
+    closeSettings();
+    toast("Saved");
+  });
+  $("themeSel").addEventListener("change", (e) => applyTheme(e.target.value));
+
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSettings(); });
+}
+
+init();
+</script>
+</body>
+</html>
